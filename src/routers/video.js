@@ -1,3 +1,4 @@
+const { application } = require('express')
 const express = require('express')
 const multer = require('multer')
 const Video = require('../models/video')
@@ -7,16 +8,7 @@ router.get('/video/test', async(req, res)=>{
     res.status(200).send('All is ok!');
 })
 
-router.post('/video', async(req,res)=>{
-    const video = new Video(req.body);
-    console.log(req.body)
-    try{
-        await video.save()
-        res.status(201).send({video});
-    }catch(e){
-        res.status(400).send(e);
-    }
-})
+
 
 var storage = multer.diskStorage({
     destination: function (request, file, callback){
@@ -49,6 +41,24 @@ router.post('/video/upload', upload.single('video'), async(req, res)=>{
     res.send()
 },(error, req, res, next)=>{
     res.status(400).send({error: error.message})
+})
+
+router.post('/video', upload.single('video'), async(req,res)=>{
+    const video = new Video(req.body);
+    const videoName = req.file.originalname;
+     
+    if(!videoName){
+        res.status(400).send('No video loaded!')
+    }
+
+    video.name = videoName;
+    console.log(req.body)
+    try{
+        await video.save()
+        res.status(201).send({video});
+    }catch(e){
+        res.status(400).send(e);
+    }
 })
 
 router.patch('/video/like/:id', async(req, res)=>{
@@ -111,5 +121,12 @@ router.get('/video', async(req, res)=>{
     }catch(e){
         res.status(400).send(e)
     }
+})
+
+router.get('/video/download', async(req, res)=>{
+    console.log(__dirname);
+    const file = `${__dirname}../../../public/uploads/serenata.mp4`;
+    res.download(file); // Set disposition and send it.
+    //res.status(200).send('All is ok!');
 })
 module.exports = router
