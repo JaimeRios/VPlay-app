@@ -8,8 +8,6 @@ router.get('/video/test', async(req, res)=>{
     res.status(200).send('All is ok!');
 })
 
-
-
 var storage = multer.diskStorage({
     destination: function (request, file, callback){
         callback(null, './public/uploads');
@@ -123,10 +121,22 @@ router.get('/video', async(req, res)=>{
     }
 })
 
-router.get('/video/download', async(req, res)=>{
-    console.log(__dirname);
-    const file = `${__dirname}../../../public/uploads/serenata.mp4`;
-    res.download(file); // Set disposition and send it.
-    //res.status(200).send('All is ok!');
+router.get('/video/download/:id', async(req, res)=>{
+
+    try{
+        const video = await Video.findOne({_id:req.params.id});
+        
+        if(!video){
+            return res.status(404).send();
+        }
+
+        const file = `${__dirname}../../../public/uploads/${video.name}`;
+        res.download(file);
+        
+    }catch(e){
+        res.status(400).send(e)
+    }
 })
+
+
 module.exports = router
