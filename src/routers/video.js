@@ -14,7 +14,6 @@ var storage = multer.diskStorage({
         callback(null, './public/uploads');
     }, 
     filename: function(request, file, callback){
-        console.log(file); 
         callback(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname))
         //callback(null, file.originalname)
     }
@@ -35,13 +34,6 @@ const upload = multer({
     }
 })
 
-router.post('/video/upload', upload.single('video'), async(req, res)=>{
-    console.log(req)
-    res.send()
-},(error, req, res, next)=>{
-    res.status(400).send({error: error.message})
-})
-
 router.post('/video', upload.single('video'), async(req,res)=>{
     const video = new Video(req.body);
     const videoName = req.file.filename;
@@ -51,8 +43,6 @@ router.post('/video', upload.single('video'), async(req,res)=>{
     }
 
     video.name = videoName;
-    console.log(req.file)
-    console.log(req.body)
     try{
         await video.save()
         res.status(201).send({video});
