@@ -2,6 +2,7 @@ const { application } = require('express')
 const express = require('express')
 const multer = require('multer')
 const Video = require('../models/video')
+var path = require('path')
 const router = new express.Router()
 
 router.get('/video/test', async(req, res)=>{
@@ -14,7 +15,8 @@ var storage = multer.diskStorage({
     }, 
     filename: function(request, file, callback){
         console.log(file); 
-        callback(null, file.originalname)
+        callback(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname))
+        //callback(null, file.originalname)
     }
 }); 
 
@@ -24,7 +26,6 @@ const upload = multer({
         fileSize: 100000000
     },
     fileFilter(req, file, cb){
-        console.log(file.originalname);
 
         if(!file.originalname.match(/\.(mp4|vid)$/)){
             return cb(new Error('Please upload a video'))
@@ -35,7 +36,7 @@ const upload = multer({
 })
 
 router.post('/video/upload', upload.single('video'), async(req, res)=>{
-    console.log(req.file)
+    console.log(req)
     res.send()
 },(error, req, res, next)=>{
     res.status(400).send({error: error.message})
@@ -43,13 +44,14 @@ router.post('/video/upload', upload.single('video'), async(req, res)=>{
 
 router.post('/video', upload.single('video'), async(req,res)=>{
     const video = new Video(req.body);
-    const videoName = req.file.originalname;
+    const videoName = req.file.filename;
      
     if(!videoName){
         res.status(400).send('No video loaded!')
     }
 
     video.name = videoName;
+    console.log(req.file)
     console.log(req.body)
     try{
         await video.save()
